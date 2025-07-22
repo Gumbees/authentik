@@ -63,26 +63,6 @@ services:
       - "traefik.http.routers.authentik-private-https.service=authentik"
       - "traefik.http.routers.authentik-private-https.tls=true"
       - "traefik.http.routers.authentik-private-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
-      # Outpost Communication - Public Domain HTTP
-      - "traefik.http.routers.authentik-outpost-public-http.rule=HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PUBLIC_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)"
-      - "traefik.http.routers.authentik-outpost-public-http.entrypoints=web"
-      - "traefik.http.routers.authentik-outpost-public-http.service=authentik"
-      # Outpost Communication - Public Domain HTTPS
-      - "traefik.http.routers.authentik-outpost-public-https.rule=HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PUBLIC_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)"
-      - "traefik.http.routers.authentik-outpost-public-https.entrypoints=websecure"
-      - "traefik.http.routers.authentik-outpost-public-https.service=authentik"
-      - "traefik.http.routers.authentik-outpost-public-https.tls=true"
-      - "traefik.http.routers.authentik-outpost-public-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
-      # Outpost Communication - Private Domain HTTP
-      - "traefik.http.routers.authentik-outpost-private-http.rule=HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PRIVATE_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)"
-      - "traefik.http.routers.authentik-outpost-private-http.entrypoints=web"
-      - "traefik.http.routers.authentik-outpost-private-http.service=authentik"
-      # Outpost Communication - Private Domain HTTPS
-      - "traefik.http.routers.authentik-outpost-private-https.rule=HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PRIVATE_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)"
-      - "traefik.http.routers.authentik-outpost-private-https.entrypoints=websecure"
-      - "traefik.http.routers.authentik-outpost-private-https.service=authentik"
-      - "traefik.http.routers.authentik-outpost-private-https.tls=true"
-      - "traefik.http.routers.authentik-outpost-private-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
       # Service Configuration
       - "traefik.http.services.authentik.loadbalancer.server.port=9000"
     depends_on:
