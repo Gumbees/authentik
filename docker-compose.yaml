@@ -44,21 +44,21 @@ services:
     labels:
       - "traefik.enable=true"
       # Public Domain - HTTP Router
-      - "traefik.http.routers.authentik-public-http.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`) || HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PUBLIC_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-public-http.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`) || (HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PUBLIC_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`))"
       - "traefik.http.routers.authentik-public-http.entrypoints=web"
       - "traefik.http.routers.authentik-public-http.service=authentik"
       # Public Domain - HTTPS Router
-      - "traefik.http.routers.authentik-public-https.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`) || HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PUBLIC_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-public-https.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`) || (HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PUBLIC_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`))"
       - "traefik.http.routers.authentik-public-https.entrypoints=websecure"
       - "traefik.http.routers.authentik-public-https.service=authentik"
       - "traefik.http.routers.authentik-public-https.tls=true"
       - "traefik.http.routers.authentik-public-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
       # Private Domain - HTTP Router
-      - "traefik.http.routers.authentik-private-http.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`) || HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PRIVATE_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-private-http.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`) || (HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PRIVATE_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`))"
       - "traefik.http.routers.authentik-private-http.entrypoints=web"
       - "traefik.http.routers.authentik-private-http.service=authentik"
       # Private Domain - HTTPS Router
-      - "traefik.http.routers.authentik-private-https.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`) || HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PRIVATE_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-private-https.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`) || (HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.${AUTHENTIK_PRIVATE_DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`))"
       - "traefik.http.routers.authentik-private-https.entrypoints=websecure"
       - "traefik.http.routers.authentik-private-https.service=authentik"
       - "traefik.http.routers.authentik-private-https.tls=true"
