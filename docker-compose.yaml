@@ -218,52 +218,29 @@ volumes:
   authentik_media_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_media"
     driver: local
-    driver_opts:
-      type: ${AUTHENTIK_MEDIA_VOLUME_TYPE:-}
-      o: ${AUTHENTIK_MEDIA_VOLUME_OPTIONS:-}
-      device: ${AUTHENTIK_MEDIA_BASE:-}
   
   # Templates volume for custom templates
   authentik_templates_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_templates"
     driver: local
-    driver_opts:
-      type: ${AUTHENTIK_TEMPLATES_VOLUME_TYPE:-}
-      o: ${AUTHENTIK_TEMPLATES_VOLUME_OPTIONS:-}
-      device: ${AUTHENTIK_TEMPLATES_BASE:-}
   
   # Certificates volume for custom certificates
   authentik_certs_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_certs"
     driver: local
-    driver_opts:
-      type: ${AUTHENTIK_CERTS_VOLUME_TYPE:-}
-      o: ${AUTHENTIK_CERTS_VOLUME_OPTIONS:-}
-      device: ${AUTHENTIK_CERTS_BASE:-}
+
   
   # Redis volume for cache data
   authentik_redis_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_redis"
     driver: local
-    driver_opts:
-      type: ${AUTHENTIK_REDIS_VOLUME_TYPE:-}
-      o: ${AUTHENTIK_REDIS_VOLUME_OPTIONS:-}
-      device: ${AUTHENTIK_REDIS_BASE:-}
   
   # Database volume for PostgreSQL data
   authentik_db_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_db"
     driver: local
-    driver_opts:
-      type: ${AUTHENTIK_DB_VOLUME_TYPE:-}
-      o: ${AUTHENTIK_DB_VOLUME_OPTIONS:-}
-      device: ${AUTHENTIK_DB_BASE:-}
   
   # GeoIP volume for location data
   authentik_geoip_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_geoip"
     driver: local
-    driver_opts:
-      type: ${AUTHENTIK_GEOIP_VOLUME_TYPE:-}
-      o: ${AUTHENTIK_GEOIP_VOLUME_OPTIONS:-}
-      device: ${AUTHENTIK_GEOIP_BASE:-} 
