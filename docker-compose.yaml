@@ -38,6 +38,7 @@ services:
       - "authentik_templates_volume:/templates"
       - "/etc/localtime:/etc/localtime:ro"
     networks:
+      proxy:
       authentik_app:
       authentik_db:
       container_internet:
@@ -196,6 +197,11 @@ services:
       start_period: 60s
 
 networks:
+  # External proxy network for ingress traffic
+  proxy:
+    external: true
+    name: "proxy"
+
   # Internal isolated network for inter-service communication
   authentik_app:
     name: "${AUTHENTIK_APP_NETWORK}"
