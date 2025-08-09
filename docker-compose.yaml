@@ -10,7 +10,6 @@ version: "3.8"
 
 services:
   authentik-server:
-    container_name: "${CONTAINER_NAME_PREFIX}_authentik_server"
     image: "ghcr.io/goauthentik/server:${AUTHENTIK_VERSION:-2025.2}"
     command: server
     user: "${PUID}:${PGID}"
@@ -38,48 +37,50 @@ services:
       - "authentik_templates_volume:/templates"
       - "/etc/localtime:/etc/localtime:ro"
     networks:
-      proxy:
-      authentik_app:
-      authentik_db:
-      container_internet:
-    labels:
-      - "traefik.enable=true"
-      # Main Interface - Public Domain HTTP
-      - "traefik.http.routers.authentik-public-http.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`)"
-      - "traefik.http.routers.authentik-public-http.entrypoints=web"
-      - "traefik.http.routers.authentik-public-http.service=authentik"
-      # Main Interface - Public Domain HTTPS
-      - "traefik.http.routers.authentik-public-https.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`)"
-      - "traefik.http.routers.authentik-public-https.entrypoints=websecure"
-      - "traefik.http.routers.authentik-public-https.service=authentik"
-      - "traefik.http.routers.authentik-public-https.tls=true"
-      - "traefik.http.routers.authentik-public-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
-      # Main Interface - Private Domain HTTP
-      - "traefik.http.routers.authentik-private-http.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`)"
-      - "traefik.http.routers.authentik-private-http.entrypoints=web"
-      - "traefik.http.routers.authentik-private-http.service=authentik"
-      # Main Interface - Private Domain HTTPS
-      - "traefik.http.routers.authentik-private-https.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`)"
-      - "traefik.http.routers.authentik-private-https.entrypoints=websecure"
-      - "traefik.http.routers.authentik-private-https.service=authentik"
-      - "traefik.http.routers.authentik-private-https.tls=true"
-      - "traefik.http.routers.authentik-private-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
-      # Service Configuration
-      - "traefik.http.services.authentik.loadbalancer.server.port=9000"
-    depends_on:
-      - redis
-      - database
-    restart: unless-stopped
+      - stack_internal
+      - traefik_proxy
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik_proxy"
+        # Main Interface - Public Domain HTTP
+        - "traefik.http.routers.authentik-public-http.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`)"
+        - "traefik.http.routers.authentik-public-http.entrypoints=web"
+        - "traefik.http.routers.authentik-public-http.service=authentik"
+        # Main Interface - Public Domain HTTPS
+        - "traefik.http.routers.authentik-public-https.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`)"
+        - "traefik.http.routers.authentik-public-https.entrypoints=websecure"
+        - "traefik.http.routers.authentik-public-https.service=authentik"
+        - "traefik.http.routers.authentik-public-https.tls=true"
+        - "traefik.http.routers.authentik-public-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
+        # Main Interface - Private Domain HTTP
+        - "traefik.http.routers.authentik-private-http.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`)"
+        - "traefik.http.routers.authentik-private-http.entrypoints=web"
+        - "traefik.http.routers.authentik-private-http.service=authentik"
+        # Main Interface - Private Domain HTTPS
+        - "traefik.http.routers.authentik-private-https.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`)"
+        - "traefik.http.routers.authentik-private-https.entrypoints=websecure"
+        - "traefik.http.routers.authentik-private-https.service=authentik"
+        - "traefik.http.routers.authentik-private-https.tls=true"
+        - "traefik.http.routers.authentik-private-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
+        # Service Configuration
+        - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        parallelism: 1
+        order: start-first
     healthcheck:
       test: ["CMD", "ak", "healthcheck"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-    privileged: ${ENABLE_AUTHENTIK_PRIVILEGES:-false}
 
   authentik-worker:
-    container_name: "${CONTAINER_NAME_PREFIX}_authentik_worker"
     image: "ghcr.io/goauthentik/server:${AUTHENTIK_VERSION:-2025.2}"
     command: worker
     user: root  # Required for Docker socket access
@@ -100,13 +101,17 @@ services:
       - "authentik_templates_volume:/templates"
       - "/etc/localtime:/etc/localtime:ro"
     networks:
-      - authentik_app
-      - authentik_db
-      - container_internet
-    depends_on:
-      - redis
-      - database
-    restart: unless-stopped
+      - stack_internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        parallelism: 1
+        order: start-first
     healthcheck:
       test: ["CMD", "ak", "healthcheck"]
       interval: 30s
@@ -115,7 +120,6 @@ services:
       start_period: 60s
 
   redis:
-    container_name: "${CONTAINER_NAME_PREFIX}_authentik_redis"
     image: "redis:7-alpine"
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
     environment:
@@ -123,17 +127,22 @@ services:
     volumes:
       - "authentik_redis_volume:/data"
     networks:
-      - authentik_db
+      - stack_internal
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 20s
-    restart: unless-stopped
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   database:
-    container_name: "${CONTAINER_NAME_PREFIX}_authentik_postgres"
     image: "postgres:16-alpine"
     environment:
       - TZ=${TZ}
@@ -142,7 +151,7 @@ services:
       - POSTGRES_DB=${AUTHENTIK_DB_DATABASE_NAME}
       - POSTGRES_INITDB_ARGS=--data-checksums
     networks:
-      - authentik_db
+      - stack_internal
     volumes:
       - "authentik_db_volume:/var/lib/postgresql/data"
     healthcheck:
@@ -151,7 +160,13 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
-    restart: unless-stopped
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
     logging:
       driver: json-file
       options:
@@ -159,7 +174,6 @@ services:
         max-size: 10m
 
   geoipupdate:
-    container_name: "${CONTAINER_NAME_PREFIX}_authentik_geoip"
     image: "maxmindinc/geoipupdate:latest"
     environment:
       - TZ=${TZ}
@@ -170,13 +184,16 @@ services:
     volumes:
       - "authentik_geoip_volume:/usr/share/GeoIP"
     networks:
-      - container_internet
-    restart: unless-stopped
+      - stack_internal
     deploy:
       replicas: ${ENABLE_GEOIP_UPDATE:-1}
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   cloudflared:
-    container_name: "${CONTAINER_NAME_PREFIX}_authentik_cloudflared"
     image: "cloudflare/cloudflared:latest"
     entrypoint: ["cloudflared", "--no-autoupdate"]
     command: ["tunnel", "run"]
@@ -184,9 +201,7 @@ services:
     environment:
       - TUNNEL_TOKEN=${AUTHENTIK_CLOUDFLARE_TUNNEL_TOKEN}
     networks:
-      - authentik_app
-      - container_internet
-    restart: unless-stopped
+      - stack_internal
     deploy:
       replicas: ${ENABLE_AUTHENTIK_CLOUDFLARED:-0}
     healthcheck:
@@ -197,27 +212,15 @@ services:
       start_period: 60s
 
 networks:
-  # External proxy network for ingress traffic
-  proxy:
+  # Single internal overlay network for the stack
+  stack_internal:
+    name: "${AUTHENTIK_STACK_NETWORK:-authentik_stack}"
+    driver: overlay
+    # Not setting internal=true to allow egress to internet from services that need it
+  # External network used by Traefik
+  traefik_proxy:
     external: true
-    name: "proxy"
-
-  # Internal isolated network for inter-service communication
-  authentik_app:
-    name: "${AUTHENTIK_APP_NETWORK}"
-    internal: true
-    driver: bridge
-
-  # Database network for database communication
-  authentik_db:
-    name: "${AUTHENTIK_DB_NETWORK}"
-    internal: true
-    driver: bridge
-
-  # External network for internet access (supports macvlan)
-  container_internet:
-    external: true
-    name: "${CONTAINERS_INTERNET_NETWORK:-containers_internet}"
+    name: "traefik_proxy"
 
 volumes:
   # Media volume for uploaded files and custom assets
