@@ -38,11 +38,11 @@ services:
       - "/etc/localtime:/etc/localtime:ro"
     networks:
       - stack_internal
-      - traefik_proxy
+      - traefik_public
     deploy:
       labels:
         - "traefik.enable=true"
-        - "traefik.docker.network=traefik_proxy"
+        - "traefik.docker.network=traefik_public"
         # Main Interface - Public Domain HTTP
         - "traefik.http.routers.authentik-public-http.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`)"
         - "traefik.http.routers.authentik-public-http.entrypoints=web"
@@ -218,9 +218,9 @@ networks:
     driver: overlay
     # Not setting internal=true to allow egress to internet from services that need it
   # External network used by Traefik
-  traefik_proxy:
+  traefik_public:
     external: true
-    name: "traefik_proxy"
+    name: "traefik_public"
 
 volumes:
   # Media volume for uploaded files and custom assets
