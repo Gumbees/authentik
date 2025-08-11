@@ -226,34 +226,52 @@ volumes:
   authentik_media_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_media"
     driver: local
-    device: /mnt/docker_vol/authentik/media
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/docker_vol/authentik/media
   
   # Templates volume for custom templates
   authentik_templates_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_templates"
     driver: local
-    device: /mnt/docker_vol/authentik/custom-templates
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/docker_vol/authentik/custom-templates
 
 
   # Certificates volume for custom certificates
   authentik_certs_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_certs"
     driver: local
-    device: /mnt/docker_vol/authentik/certs
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/docker_vol/authentik/certs
   
   # Redis volume for cache data
   authentik_redis_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_redis"
     driver: local
-    device: /mnt/docker_vol/authentik/redis
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/docker_vol/authentik/redis
   
   # Database volume for PostgreSQL data
   authentik_db_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_db"
     driver: local
-    device: /mnt/docker_vol/authentik/db
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/docker_vol/authentik/db
   # GeoIP volume for location data
   authentik_geoip_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_geoip"
     driver: local
-    device: /mnt/docker_vol/authentik/geoip
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/docker_vol/authentik/geoip
