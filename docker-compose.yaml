@@ -12,7 +12,6 @@ services:
   authentik-server:
     image: "ghcr.io/goauthentik/server:${AUTHENTIK_VERSION:-2025.2}"
     command: server
-    user: "${PUID}:${PGID}"
     environment:
       - TZ=${TZ}
       - AUTHENTIK_REDIS__HOST=redis
@@ -202,7 +201,6 @@ services:
     image: "cloudflare/cloudflared:latest"
     entrypoint: ["cloudflared", "--no-autoupdate"]
     command: ["tunnel", "run"]
-    user: "${PUID}:${PGID}"
     environment:
       - TUNNEL_TOKEN=${AUTHENTIK_CLOUDFLARE_TUNNEL_TOKEN}
     networks:
@@ -226,52 +224,28 @@ volumes:
   authentik_media_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_media"
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /mnt/docker_vol/authentik/media
   
   # Templates volume for custom templates
   authentik_templates_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_templates"
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /mnt/docker_vol/authentik/custom-templates
 
 
   # Certificates volume for custom certificates
   authentik_certs_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_certs"
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /mnt/docker_vol/authentik/certs
   
   # Redis volume for cache data
   authentik_redis_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_redis"
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /mnt/docker_vol/authentik/redis
   
   # Database volume for PostgreSQL data
   authentik_db_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_db"
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /mnt/docker_vol/authentik/db
   # GeoIP volume for location data
   authentik_geoip_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_geoip"
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /mnt/docker_vol/authentik/geoip
