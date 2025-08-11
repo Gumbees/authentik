@@ -40,6 +40,7 @@ services:
       - stack_internal
       - traefik_public
     deploy:
+      replicas: 2
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=traefik_public"
@@ -103,7 +104,7 @@ services:
     networks:
       - stack_internal
     deploy:
-      replicas: 1
+      replicas: 2
       restart_policy:
         condition: any
         delay: 5s
