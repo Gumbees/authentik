@@ -43,7 +43,7 @@ services:
       replicas: 2
       labels:
         - "traefik.enable=true"
-        - "traefik.docker.network=traefik_public"
+        - "traefik.swarm.network=traefik_public"
         # Main Interface - Public Domain HTTP
         - "traefik.http.routers.authentik-public-http.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`)"
         - "traefik.http.routers.authentik-public-http.entrypoints=web"
