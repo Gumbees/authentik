@@ -82,46 +82,6 @@ services:
       retries: 3
       start_period: 60s
 
-  authentik-worker:
-    image: "ghcr.io/goauthentik/server:${AUTHENTIK_VERSION:-2025.2}"
-    command: worker
-    user: root  # Required for Docker socket access
-    environment:
-      - TZ=${TZ}
-      - AUTHENTIK_REDIS__HOST=redis
-      - AUTHENTIK_POSTGRESQL__HOST=database
-      - AUTHENTIK_POSTGRESQL__PORT=5432
-      - AUTHENTIK_POSTGRESQL__USER=${AUTHENTIK_DB_USERNAME}
-      - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_DB_PASSWORD}
-      - AUTHENTIK_POSTGRESQL__NAME=${AUTHENTIK_DB_DATABASE_NAME}
-      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
-      - AUTHENTIK_ERROR_REPORTING__ENABLED=${AUTHENTIK_ERROR_REPORTING:-false}
-      # Logging Configuration
-      - AUTHENTIK_LOG_LEVEL=${AUTHENTIK_LOG_LEVEL:-warning}
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "authentik_media_volume:/media"
-      - "authentik_certs_volume:/certs"
-      - "authentik_templates_volume:/templates"
-      - "/etc/localtime:/etc/localtime:ro"
-    networks:
-      - stack_internal
-    deploy:
-      replicas: 2
-      restart_policy:
-        condition: any
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-      update_config:
-        parallelism: 1
-        order: start-first
-    healthcheck:
-      test: ["CMD", "ak", "healthcheck"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   redis:
     image: "redis:7-alpine"
@@ -177,25 +137,6 @@ services:
         max-file: '5'
         max-size: 10m
 
-  geoipupdate:
-    image: "maxmindinc/geoipupdate:latest"
-    environment:
-      - TZ=${TZ}
-      - GEOIPUPDATE_EDITION_IDS=GeoLite2-City
-      - GEOIPUPDATE_FREQUENCY=8
-      - GEOIPUPDATE_ACCOUNT_ID=${GEOIP_ACCOUNT_ID:-}
-      - GEOIPUPDATE_LICENSE_KEY=${GEOIP_LICENSE_KEY:-}
-    volumes:
-      - "authentik_geoip_volume:/usr/share/GeoIP"
-    networks:
-      - stack_internal
-    deploy:
-      replicas: ${ENABLE_GEOIP_UPDATE:-1}
-      restart_policy:
-        condition: any
-        delay: 5s
-        max_attempts: 3
-        window: 120s
 
   cloudflared:
     image: "cloudflare/cloudflared:latest"
@@ -231,11 +172,6 @@ volumes:
     driver: local
 
 
-  # Certificates volume for custom certificates
-  authentik_certs_volume:
-    name: "${CONTAINER_NAME_PREFIX}_authentik_certs"
-    driver: local
-  
   # Redis volume for cache data
   authentik_redis_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_redis"
@@ -245,7 +181,4 @@ volumes:
   authentik_db_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_db"
     driver: local
-  # GeoIP volume for location data
-  authentik_geoip_volume:
-    name: "${CONTAINER_NAME_PREFIX}_authentik_geoip"
-    driver: local
+
