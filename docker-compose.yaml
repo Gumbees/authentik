@@ -40,7 +40,7 @@ services:
       - stack_internal
       - traefik_public
     deploy:
-      replicas: 2
+      replicas: 1
       labels:
         - "traefik.enable=true"
         - "traefik.swarm.network=traefik_public"
