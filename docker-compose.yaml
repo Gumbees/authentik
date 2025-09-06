@@ -126,8 +126,6 @@ services:
     networks:
       - stack_internal
     restart: unless-stopped
-    profiles:
-      - cloudflared
 
 networks:
   # Single internal bridge network for the stack
