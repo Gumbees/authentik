@@ -40,41 +40,32 @@ services:
     networks:
       - stack_internal
       - traefik_public
-    deploy:
-      replicas: 1
-      labels:
-        - "traefik.enable=true"
-        - "traefik.swarm.network=traefik_public"
-        # Main Interface - Public Domain HTTP
-        - "traefik.http.routers.authentik-public-http.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`)"
-        - "traefik.http.routers.authentik-public-http.entrypoints=web"
-        - "traefik.http.routers.authentik-public-http.service=authentik"
-        # Main Interface - Public Domain HTTPS
-        - "traefik.http.routers.authentik-public-https.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`)"
-        - "traefik.http.routers.authentik-public-https.entrypoints=websecure"
-        - "traefik.http.routers.authentik-public-https.service=authentik"
-        - "traefik.http.routers.authentik-public-https.tls=true"
-        - "traefik.http.routers.authentik-public-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
-        # Main Interface - Private Domain HTTP
-        - "traefik.http.routers.authentik-private-http.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`)"
-        - "traefik.http.routers.authentik-private-http.entrypoints=web"
-        - "traefik.http.routers.authentik-private-http.service=authentik"
-        # Main Interface - Private Domain HTTPS
-        - "traefik.http.routers.authentik-private-https.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`)"
-        - "traefik.http.routers.authentik-private-https.entrypoints=websecure"
-        - "traefik.http.routers.authentik-private-https.service=authentik"
-        - "traefik.http.routers.authentik-private-https.tls=true"
-        - "traefik.http.routers.authentik-private-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
-        # Service Configuration
-        - "traefik.http.services.authentik.loadbalancer.server.port=9000"
-      restart_policy:
-        condition: any
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-      update_config:
-        parallelism: 1
-        order: start-first
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_public"
+      # Main Interface - Public Domain HTTP
+      - "traefik.http.routers.authentik-public-http.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`)"
+      - "traefik.http.routers.authentik-public-http.entrypoints=web"
+      - "traefik.http.routers.authentik-public-http.service=authentik"
+      # Main Interface - Public Domain HTTPS
+      - "traefik.http.routers.authentik-public-https.rule=Host(`${AUTHENTIK_PUBLIC_DOMAIN}`)"
+      - "traefik.http.routers.authentik-public-https.entrypoints=websecure"
+      - "traefik.http.routers.authentik-public-https.service=authentik"
+      - "traefik.http.routers.authentik-public-https.tls=true"
+      - "traefik.http.routers.authentik-public-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
+      # Main Interface - Private Domain HTTP
+      - "traefik.http.routers.authentik-private-http.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`)"
+      - "traefik.http.routers.authentik-private-http.entrypoints=web"
+      - "traefik.http.routers.authentik-private-http.service=authentik"
+      # Main Interface - Private Domain HTTPS
+      - "traefik.http.routers.authentik-private-https.rule=Host(`${AUTHENTIK_PRIVATE_DOMAIN}`)"
+      - "traefik.http.routers.authentik-private-https.entrypoints=websecure"
+      - "traefik.http.routers.authentik-private-https.service=authentik"
+      - "traefik.http.routers.authentik-private-https.tls=true"
+      - "traefik.http.routers.authentik-private-https.tls.certresolver=${AUTHENTIK_CERT_RESOLVER:-letsencrypt}"
+      # Service Configuration
+      - "traefik.http.services.authentik.loadbalancer.server.port=9000"
     healthcheck:
       test: ["CMD", "ak", "healthcheck"]
       interval: 30s
@@ -98,13 +89,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: any
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+    restart: unless-stopped
 
   database:
     image: "postgres:16-alpine"
@@ -124,13 +109,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: any
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+    restart: unless-stopped
     logging:
       driver: json-file
       options:
@@ -146,14 +125,15 @@ services:
       - TUNNEL_TOKEN=${AUTHENTIK_CLOUDFLARE_TUNNEL_TOKEN}
     networks:
       - stack_internal
-    deploy:
-      replicas: ${ENABLE_AUTHENTIK_CLOUDFLARED:-0}
+    restart: unless-stopped
+    profiles:
+      - cloudflared
 
 networks:
-  # Single internal overlay network for the stack
+  # Single internal bridge network for the stack
   stack_internal:
     name: "${AUTHENTIK_STACK_NETWORK:-authentik_stack}"
-    driver: overlay
+    driver: bridge
     # Not setting internal=true to allow egress to internet from services that need it
   # External network used by Traefik
   traefik_public:
@@ -165,20 +145,36 @@ volumes:
   authentik_media_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_media"
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${AUTHENTIK_DATA_BASE_PATH}/authentik-media"
   
   # Templates volume for custom templates
   authentik_templates_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_templates"
     driver: local
-
+    driver_opts:
+      type: none
+      o: bind
+      device: "${AUTHENTIK_DATA_BASE_PATH}/authentik-templates"
 
   # Redis volume for cache data
   authentik_redis_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_redis"
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${AUTHENTIK_DATA_BASE_PATH}/authentik-redis"
   
   # Database volume for PostgreSQL data
   authentik_db_volume:
     name: "${CONTAINER_NAME_PREFIX}_authentik_db"
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${AUTHENTIK_DATA_BASE_PATH}/authentik-db"
+
 
